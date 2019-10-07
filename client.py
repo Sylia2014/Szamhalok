@@ -1,6 +1,6 @@
+# coding=utf-8
 import json
 import sys
-
 
 with open(sys.argv[1], "r") as file:
     data = json.load(file)
@@ -25,83 +25,94 @@ demand: dict
 for demand in demands:
     demand.update({'started': False})
     demand.update({'connection': None})
-
-connections = []
-usedLinks = []
-availableCircuits = possibleCircuits
+    demand.update({'served': False})
 
 
 def validLink(point1, point2):
     return (point1[0] == point2[0] and point1[-1] == point2[1]) or (point1[0] == point2[1] and point1[-1] == point2[0])
 
-def checkIsPossibleCircuit(circuits, endpoints, demand): #ezzel megnézzük van-e egyáltalán olyan áramkör, aminek a két vége a nekünk kellő két pont
+
+def checkIsPossibleCircuit(circuits, endpoints, demand):
     needToTest, result = [], []
-    for circuit in circuits:
+    for index, circuit in enumerate(circuits):
         if validLink(circuit, endpoints):
-            isUseableCircuit(circuit, demand)
+            if isUseableCircuit(circuit, demand):
+                allocateResource(circuit, demand)
+                # print(index)
+                return index
+            else:
+                return None
 
     return result
 
-def isUseableCircuit(circuit, demand): #ezzel megnézzük hogy a lehetséges áramkörök közül tudjuk-e bármelyiket ténylegesen használni
+
+def isUseableCircuit(circuit, demand):
     for i in range(len(circuit) - 1):
-        for j in range(len(links)):
-            actualLinks = links[j]
-            if validLink(circuit[i:i+2], actualLinks['points']) and demand <= actualLinks['capacity'] - actualLinks['used-capacity']:
-                break
-            # if (i == len(circuit) - 1 and j == range(len(links))
-            #         and not(validLink(circuit[i:i+2], actualLinks['points']) and demand <= actualLinks['capacity'] - actualLinks["used-capacity"])):
-            #     return False
+        length = len(circuit) - 2
+        arr = circuit[i:i + 2]
+        find = False
+
+        actualLinks = findInLinks(circuit[i:i + 2], links)
+        if demand <= actualLinks['capacity'] - actualLinks['used-capacity']:
+            find = True
+        if i == len(circuit) - 2 and find:
+            return True
+        elif i == len(circuit) - 1 and not (find):
+            return False
+
+        # régi mo eleje
+        # for j in range(len(links)):
+        #     arr = circuit[i:i+2]
+        #     actualLinks = links[j]
+        #     if validLink(arr, actualLinks['points']) and demand <= actualLinks['capacity'] - actualLinks['used-capacity']:
+        #         find = True
+        #         break
+        # if i == len(circuit) - 2 and find:
+        #     return True
+        # elif i == len(circuit) - 1 and not(find):
+        #     return False
+        # régi mo vége
 
 
-    # for conn in possConns:
-    #     useableRoute = True
-    #     maybeDelLinks = []
-    #
-    #     if useableRoute:
-    #         deleteFromLinks(availableLinks, maybeDelLinks)
-    #         print(availableLinks)
-    #         return conn
-    # return []
+def findInLinks(linkPair, links):
+    for link in links:
+        if validLink(linkPair, link['points']):
+            return link
 
 
-def deleteFromConnections(connections, connection):
-    for conn in connections:
-        if connection == conn:
-            connections.remove(connection)
+def allocateResource(circuit, demand):
+    for i in range(len(circuit) - 1):
+        actualLinks = findInLinks(circuit[i:i + 2], links)
+        actualLinks['used-capacity'] += demand
 
-def deleteFromLinks(availableLinks, needToDelLinks):
-    for needToDelLink in needToDelLinks:
-        deleteFromConnections(availableLinks, needToDelLink)
-
-def backToAvaliableLinks(availableLinks, connection):
-    for i in range(len(connection) - 1):
-        link = [connection[i], connection[i+1]]
-        for j in range(len(links)):
-            actualLinks = links[j]
-            if validLink(link, actualLinks['points']):
-                availableLinks.append(actualLinks)
-
+def releaseResource(index, demand):
+    circuit = possibleCircuits[index]
+    for i in range(len(circuit) - 1):
+        actualLinks = findInLinks(circuit[i:i + 2], links)
+        actualLinks['used-capacity'] -= demand
 
 
 action = 1
 for i in range(duration):
     for elem in demands:
-        # connection = possibleCircuit(availableCircuits, elem['end-points'], elem['demand'])
-        if elem['start-time'] == i:
-            checkIsPossibleCircuit(possibleCircuits, elem['end-points'], elem['demand'])
-            # connections.append(connection)
-            # deleteFromConnections(availableCircuits, connection)
-            print(str(action) + ". igény foglalás: " + elem['end-points'][0] + "<->" + elem['end-points'][1] + " st:" + str(i) + " - sikeres")
+        if elem['start-time'] == i and not(elem['started'] and not(elem['served'])):
+            result = checkIsPossibleCircuit(possibleCircuits, elem['end-points'], elem['demand'])
+            if result != None:
+                elem['connection'] = result
+                elem['started'] = True
+                print(str(action) + ". igény foglalás: " + elem['end-points'][0] + "<->" +
+                      elem['end-points'][1] + " st:" + str(i) + " - sikeres")
+            else:
+                print(str(action) + ". igény foglalás: " + elem['end-points'][0] + "<->" +
+                      elem['end-points'][1] + " st:" + str(i) + " - sikertelen")
             action += 1
-        # elif elem['start-time'] == i and not(connection):
-        #     print(str(action) + ". igény foglalás: " + elem['end-points'][0] + "<->" + elem['end-points'][1] + " st:" + str(i) + " - sikertelen")
-        #     action += 1
 
         if elem['end-time'] == i and elem['started']:
-            # felszabadít
-            # deleteFromConnections(connections, connection)
-            # availableCircuits.append(connection)
-            # # vissza kell tenni a linkeket is az availableLinksbe
-            # backToAvaliableLinks(availableLinks,connection)
-            print(str(action) + ". igény felszabadítás: " + elem['end-points'][0] + "<->" + elem['end-points'][1] + " st:" + str(i))
+            releaseResource(elem['connection'], elem['demand'])
+            elem['connection'] = None
+            elem['started'] = False
+            elem['served'] = True
+
+            print(str(action) + ". igény felszabadítás: " + elem['end-points'][0] + "<->" +
+                  elem['end-points'][1] + " st:" + str(i))
             action += 1
