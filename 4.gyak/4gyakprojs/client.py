@@ -6,7 +6,6 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 packer = struct.Struct('I I 1s')
 
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 szam1 = input("Kerem a szamot:")
 op = input("Kerem az operatort:")
