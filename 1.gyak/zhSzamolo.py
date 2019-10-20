@@ -21,22 +21,22 @@ jo = 0.75
 jeles = 0.85
 
 eddigi = (szerzettTeszt/maxTest) * 0.25 + (szerzettHf/maxHf) * 0.35
-print 'Eddigi: ', eddigi
+print('Eddigi: ', eddigi)
 
 if (elegseges - eddigi) * maxZH / 0.4  > maxZH:
-	print '2: Remenytelen'
+	print('2: Remenytelen')
 else: 
 	print(math.ceil((elegseges - eddigi) * maxZH / 0.4))
 if (kozepes - eddigi) * maxZH / 0.4  > maxZH:
-	print '3: Remenytelen'
+	print ('3: Remenytelen')
 else:
 	print(math.ceil((kozepes - eddigi) * maxZH / 0.4))
 if (jo - eddigi) * maxZH / 0.4  > maxZH:
-	print '4: Remenytelen'
+	print ('4: Remenytelen')
 else:
 	print(math.ceil((jo - eddigi) * maxZH / 0.4))
 if (jeles - eddigi) * maxZH / 0.4  > maxZH:
-	print '5: Remenytelen'
+	print ('5: Remenytelen')
 else:
 	print(math.ceil((jeles - eddigi) * maxZH / 0.4))
 
