@@ -79,7 +79,7 @@ while inputs:
                             game_over_data = packer.pack(*game_over_msg)
                             for c in write:
                                 c.send(game_over_data)
-                            # s.send(packed_data)
+                                inputs.remove(c)
                         else:
                             answer = (LOSE, random_ans_num)
                             packed_data = packer.pack(*answer)

@@ -30,18 +30,12 @@ def logarithmical_search(answ, prev_tip, low_lim, upp_lim):
         tip = prev_tip
         operator = "=".encode()
         return tip
-    # elif low_lim == prev_tip and answ == 'I':
-    #     tip = prev_tip
-    #     operator = "=".encode()
-    #     return tip
     if answ == 'N':
         lower_limit = prev_tip
-        new_tip = math.floor((prev_tip + upp_lim) / 2)
         tip = math.floor((prev_tip + upp_lim) / 2)
         return tip
     elif answ == 'I':
         upper_limit = prev_tip
-        new_tip = math.floor((prev_tip + low_lim) / 2)
         tip = math.floor((prev_tip + low_lim) / 2)
         return tip
 
