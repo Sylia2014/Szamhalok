@@ -10,3 +10,8 @@
         • <srv_ip> <srv_port>: a netcopy szerver elérhetősége
         • <chsum_srv_ip> <chsum_srv_port>: a Checksum szerver elérhetősége
 """
+import socket
+import sys
+
+server_address = (sys.argv[1], int(sys.argv[2]))
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

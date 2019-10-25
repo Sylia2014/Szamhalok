@@ -15,3 +15,8 @@
         • <chsum_srv_ip> <chsum_srv_port>: a Checksum szerver elérhetősége
         • <fájlnév> : ide írja a kapott bájtokat
 """
+import socket
+import sys
+
+server_address = (sys.argv[1], int(sys.argv[2]))
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
