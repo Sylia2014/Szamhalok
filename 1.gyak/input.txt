@@ -1,3 +1,3 @@
-100,23.67, #maxTeszt, szerzettTeszt
+100,27.67, #maxTeszt, szerzettTeszt
 20,8, #maxHf, szerzettHf
 20, #maxZH
