@@ -37,7 +37,7 @@ while inputs:
                     msg_q.put(data)
                 else:
                     print("Kilepett: ", username[s])
-                    msg_q.put("["+name+"] is LOGOUT")
+                    msg_q.put("["+username[s]+"] is LOGOUT")
 
                     inputs.remove(s)
                     if s in write:
