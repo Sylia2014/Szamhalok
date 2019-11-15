@@ -22,3 +22,13 @@
     – A szerver végtelen ciklusban fut és egyszerre több klienst is ki tud szolgálni. A kommunikáció TCP, csak a fenti üzeneteket kezeli.
     – Lejárat utáni checksumok törlődnek.
 """
+
+import socket
+import sys
+
+server_address = (sys.argv[1], int(sys.argv[2]))
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.settimeout(1.0)
+server.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+server.bind(server_address)
+server.listen(5)
