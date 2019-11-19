@@ -15,12 +15,73 @@
         • <chsum_srv_ip> <chsum_srv_port>: a Checksum szerver elérhetősége
         • <fájlnév> : ide írja a kapott bájtokat
 """
+import hashlib
+import select
 import socket
 import sys
 
-server_address = (sys.argv[1], int(sys.argv[2]))
+srv_ip = sys.argv[1]
+srv_port = int(sys.argv[2])
+chsum_srv_ip = sys.argv[3]
+chsum_srv_port = int(sys.argv[4])
+fajl_azon = sys.argv[5]
+fajl_eleresi_ut = sys.argv[6]
+
+server_address = (srv_ip, srv_port)
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.settimeout(1.0)
 server.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
 server.bind(server_address)
 server.listen(5)
+
+checksum_server_address = (chsum_srv_ip, chsum_srv_port)
+checksum_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+try:
+    checksum_client.connect(checksum_server_address)
+except socket.error as e:
+    checksum_client.close()
+
+inputs = [server, checksum_client]
+
+eredm_file = open(fajl_eleresi_ut, "wb")
+m = hashlib.md5()
+
+while inputs:
+    timeout = 1
+    read, write, excp = select.select(inputs, inputs, inputs, timeout)
+
+    if not(read or write or excp):
+        continue
+
+    for s in read:
+        try:
+            if s is server:
+                client, client_addr = s.accept()
+                client.setblocking(1)
+                inputs.append(client)
+            else:
+                data = s.recv(1024)
+                if data:
+                    if(s is checksum_client):
+                        splitted_data = data.decode().split("|")
+                        #eredm_fajlból visszaolvasás, checksum készítés és ellenőrzés
+                        print(splitted_data)
+                    else:
+                        eredm_file.write(data)
+                        m.update(data)
+                        # eredm_file.close()
+                else:
+                    eredm_file.flush()
+                    s.close()
+                    inputs.remove(s)
+                    if s in write:
+                        checksum_msg = "KI|" + fajl_azon
+                        checksum_client.send(checksum_msg.encode())
+
+        except socket.error as e:
+            print("hiba", e)
+            inputs.remove(s)
+            if s in write:
+                write.remove(s)
+            s.close()
