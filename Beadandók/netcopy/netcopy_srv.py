@@ -43,11 +43,11 @@ except socket.error as e:
     checksum_client.close()
 
 inputs = [server, checksum_client]
+kapott = []
+mentett = []
 
 eredm_file = open(fajl_eleresi_ut, "wb")
 m = hashlib.md5()
-
-server.fileno()
 
 while server.fileno() != -1:
     timeout = 1
@@ -68,19 +68,27 @@ while server.fileno() != -1:
                     if(s is checksum_client):
                         splitted_data = data.decode().split("|")
                         # print(splitted_data)
+
+                        # print("file try to open")
                         with open(fajl_eleresi_ut, 'rb') as file:
                             for byte in iter(lambda: file.read(1), b''):
+                                mentett.append(byte)
+                                # print(mentett)
                                 m.update(byte)
                         vege = "[" + str(len(m.hexdigest())) + ", " + m.hexdigest() + "]"
                         # print(vege)
-                        if (int(splitted_data[0]) != len(m.hexdigest())) or (splitted_data[1] != m.hexdigest()):
+
+                        # for i in range(len(mentett)):
+                            # print(str(mentett[i]) + " " + str(kapott[i]))
+
+                        if int(splitted_data[0]) != len(m.hexdigest()) or splitted_data[1] != m.hexdigest():
                             print("CSUM CORRUPTED")
                         else:
                             print("CSUM OK")
                         server.close()
-                        #eredm_fajlból visszaolvasás, checksum készítés és ellenőrzés
-
                     else:
+                        kapott.append(data)
+                        # print(kapott)
                         eredm_file.write(data)
                         m.update(data)
                 else:
@@ -88,6 +96,7 @@ while server.fileno() != -1:
                     s.close()
                     inputs.remove(s)
                     eredm_file.close()
+                    # print("file closed")
                     if s in write:
                         checksum_msg = "KI|" + fajl_azon
                         checksum_client.send(checksum_msg.encode())
