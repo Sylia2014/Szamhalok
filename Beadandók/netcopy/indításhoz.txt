@@ -1,0 +1,6 @@
+localhost 8080 localhost 10000 4 "C:/Users/Sylia/Adatok/Suli/11. félév/Számhálók/Szamhalok/Beadandók/netcopy/teszt.txt"  - client
+
+localhost 10000  -  checksum_srv
+
+
+localhost 8080 localhost 10000 4 "C:/Users/Sylia/Adatok/Suli/11. félév/Számhálók/Szamhalok/Beadandók/netcopy/eredmeny.txt"  - server
