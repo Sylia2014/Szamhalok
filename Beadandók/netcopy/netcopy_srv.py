@@ -65,16 +65,26 @@ while inputs:
                 if data:
                     if(s is checksum_client):
                         splitted_data = data.decode().split("|")
+                        # print(splitted_data)
+                        with open(fajl_eleresi_ut, 'rb') as file:
+                            for byte in iter(lambda: file.read(1), b''):
+                                m.update(byte)
+                        vege = "[" + str(len(m.hexdigest())) + ", " + m.hexdigest() + "]"
+                        # print(vege)
+                        if (int(splitted_data[0]) != len(m.hexdigest())) or (splitted_data[1] != m.hexdigest()):
+                            print("CSUM CORRUPTED")
+                        else:
+                            print("CSUM OK")
                         #eredm_fajlból visszaolvasás, checksum készítés és ellenőrzés
-                        print(splitted_data)
+
                     else:
                         eredm_file.write(data)
                         m.update(data)
-                        # eredm_file.close()
                 else:
                     eredm_file.flush()
                     s.close()
                     inputs.remove(s)
+                    eredm_file.close()
                     if s in write:
                         checksum_msg = "KI|" + fajl_azon
                         checksum_client.send(checksum_msg.encode())

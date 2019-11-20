@@ -26,6 +26,7 @@
 import socket
 import sys
 import select
+import datetime
 
 srv_ip = sys.argv[1]
 srv_port = int(sys.argv[2])
@@ -38,13 +39,19 @@ server.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
 server.bind(server_address)
 server.listen(5)
 
+datetime.timedelta()
+
 class Checksum:
     # BE|<fájl azon.>|<érvényesség másodpercben>|<checksum hossza bájtszámban>|<checksum bájtjai>
-    def __init__(self, fajl_azon, ervenyesseg, hossz, bajtok):
+    def __init__(self, fajl_azon, hossz, bajtok, lejarat_ideje):
         self.fajl_azon = fajl_azon
-        self.ervenyesseg = ervenyesseg
         self.hossz = hossz
         self.bajtok = bajtok
+        self.lejarat_ideje = lejarat_ideje
+
+    @property
+    def lejarat_ideje(self):
+        return self._lejarat_ideje
 
     @property
     def fajl_azon(self):
@@ -58,14 +65,6 @@ class Checksum:
     def bajtok(self):
         return self._bajtok
 
-    @property
-    def ervenyesseg(self):
-        return self._ervenyesseg
-
-    @ervenyesseg.setter
-    def ervenyesseg(self, value):
-        self._ervenyesseg = value
-
     @fajl_azon.setter
     def fajl_azon(self, value):
         self._fajl_azon = value
@@ -78,7 +77,11 @@ class Checksum:
     def bajtok(self, value):
         self._bajtok = value
 
-    #megírni valahogy az érvénytelen fájlok törlését
+    @lejarat_ideje.setter
+    def lejarat_ideje(self, value):
+        self._lejarat_ideje = value
+
+
 #     whileba végig kell menni a checksumok tömbön, és mikor felveszem akkor letárolom hogy mikor vettem fel, és ha lejárt akkor törlés
 
 
@@ -89,6 +92,10 @@ checksumok = []
 while inputs:
     timeout = 1
     read, write, excp = select.select(inputs, inputs, inputs, timeout)
+
+    for checksum in checksumok:
+        if(datetime.datetime.now() > checksum.lejarat_ideje):
+            checksumok.remove(checksum)
 
     if not(read or write or excp):
         continue
@@ -104,13 +111,14 @@ while inputs:
                 if data:
                     splitted_data = data.decode().split("|")
                     if splitted_data[0] == "BE":
-                        print(data)
+                        # print(data)
                         # BE|<fájl azon.>|<érvényesség másodpercben>|<checksum hossza bájtszámban>|<checksum bájtjai>
-                        checksum = Checksum(splitted_data[1], splitted_data[2], splitted_data[3], splitted_data[4])
+                        checksum = Checksum(splitted_data[1], splitted_data[3], splitted_data[4],
+                                            datetime.datetime.now() + datetime.timedelta(0, int(splitted_data[2])))
                         checksumok.append(checksum)
                         s.send(answer_ok.encode())
                     elif splitted_data[0] == "KI":
-                        print(data)
+                        # print(data)
                         for checksum in checksumok:
                             if(checksum.fajl_azon == splitted_data[1]):
                                 # <checksum hossza bájtszámban>|<checksum bájtjai>
