@@ -47,7 +47,9 @@ inputs = [server, checksum_client]
 eredm_file = open(fajl_eleresi_ut, "wb")
 m = hashlib.md5()
 
-while inputs:
+server.fileno()
+
+while server.fileno() != -1:
     timeout = 1
     read, write, excp = select.select(inputs, inputs, inputs, timeout)
 
@@ -75,6 +77,7 @@ while inputs:
                             print("CSUM CORRUPTED")
                         else:
                             print("CSUM OK")
+                        server.close()
                         #eredm_fajlból visszaolvasás, checksum készítés és ellenőrzés
 
                     else:
