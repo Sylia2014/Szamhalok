@@ -1,28 +1,30 @@
 import socket
-from input_timeout import readInput
 import sys
+from input_timeout import readInput
 
 username = sys.argv[1]
 
-def prompt(n1):
-    if n1:
-        print("")
-    print("<"+username+">")
 
-server_address = ('localhost',10000)
+def prompt(nl):
+    if nl:
+        print("")
+    print("<" + username + ">")
+
+
+server_address = ("localhost", 10000)
+
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 client.connect(server_address)
 client.sendall(username.encode())
 client.settimeout(1.0)
-
 prompt(False)
 
 while True:
     try:
         data = client.recv(200)
         if not data:
-            print("Server error")
+            print("Server down")
             sys.exit()
         else:
             print(data.decode())
@@ -34,19 +36,17 @@ while True:
     except socket.timeout:
         pass
     except socket.error as e:
-        print("hiba",e)
-        client.close()
+        print("hiba", e)
         break
 
     try:
         msg = readInput()
-        if msg != "":
-            msg = msg.strip()
-            client.sendall(("["+username+"]").encode())
+        msg = msg.strip()
+        if (msg != ""):
+            client.sendall(("[" + username + "]" + msg).encode())
             prompt(True)
     except socket.timeout:
         pass
-    except socket.error as m:
-        print("hiba", m)
-        client.close()
+    except socket.error as e:
+        print(e)
         break

@@ -1,54 +1,58 @@
 import socket
 import select
-import Queue as queue
+import queue
 
+#a futtatásnál ha be akarok olvasni valamit a konzolról akkor emulate terminal in output console
 server_address = ('', 10000)
+
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.settimeout(1.0)
-server.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
 server.bind(server_address)
+
 server.listen(5)
 
 inputs = [server]
+
 msg_q = queue.Queue()
 username = {}
 
 while inputs:
     timeout = 1
-    read, write, excp = select.select(inputs,inputs,inputs, timeout)
+    readable, writeable, exceptable = select.select(inputs, inputs, inputs, timeout)
 
-    if not(read or write or excp):
+    if not (readable or writeable or exceptable):
         continue
 
-    for s in read:
+    for s in readable:
         try:
             if s is server:
                 client, client_addr = s.accept()
                 client.setblocking(1)
                 name = client.recv(20).decode().strip()
-                print("Csatlakozott: ", name, client_addr)
+                print("Kliens csatlakozott: ", name, client_addr)
                 username[client] = name
                 inputs.append(client)
-                msg_q.put("["+name+"] is LOGIN")
+                msg_q.put("[" + name + "] is LOGIN")
             else:
                 data = s.recv(200).strip()
                 if data:
-                    msg_q.put(data)
+                    msg_q.put(data.decode())
                 else:
-                    print("Kilepett: ", username[s])
-                    msg_q.put("["+username[s]+"] is LOGOUT")
-
+                    print("Kliens kilepett")
+                    msg_q.put("[" + username[s] + "] is LOGOUT")
                     inputs.remove(s)
-                    if s in write:
-                        write.remove(s)
+                    if s in writeable:
+                        writeable.remove(s)
                     s.close()
-        except socket.error as e:
-            print("hiba", e)
+        except socket.error as m:
+            print("hiba", m)
             inputs.remove(s)
-            if s in write:
-                write.remove(s)
+            if s in writeable:
+                writeable.remove(s)
             s.close()
+
     while not msg_q.empty():
         try:
             next_msg = msg_q.get_nowait()
@@ -56,7 +60,7 @@ while inputs:
         except queue.Empty:
             break
         else:
-            for s in write:
-                if(username[s] in next_msg):
+            for s in writeable:
+                if not username[s] in next_msg:
                     s.sendall(next_msg.encode())
-                    print(username[s])
+                    print("Send", username[s])
