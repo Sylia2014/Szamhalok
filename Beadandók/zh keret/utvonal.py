@@ -1,6 +1,10 @@
 import select
 import socket
+import struct
 import sys
+
+# srv_ip = 'localhost'
+# srv_port = 8080
 
 srv_ip = sys.argv[1]
 srv_port = int(sys.argv[2])
@@ -18,7 +22,11 @@ server.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
 server.bind(server_address)
 server.listen(5)
 
-inputs = [server]  #bemeneti csatornák, ha több van, pl mint a netcopynál, akkor azt is fel kell ide venni
+inputs = [server]
+
+packer = struct.Struct('10s 20s')
+
+utvonalAdatok = {"15":"London,Paris","16":"Berlin","17":"Becs,Budapest"}
 
 while inputs:
     timeout = 1
@@ -34,10 +42,23 @@ while inputs:
                 client.setblocking(1)
                 inputs.append(client)
             else:
-                data = s.recv(1024)  #
+                data = s.recv(packer.size)
                 if data:
-                    print(data.decode())
-                    #többi logika
+                    unpacked_data = packer.unpack(data)
+                    cmd = unpacked_data[0].decode().strip("\x00")
+                    param = unpacked_data[1].decode().strip("\x00")
+
+                    answer = ""
+
+                    if(cmd == "ido"):
+                        utvonaldata = utvonalAdatok.get(param)
+                        if utvonaldata == None:
+                            answer = "Nincs informacio".encode()
+                        else:
+                            answer = utvonaldata.encode()
+                    else:
+                        answer = "Hibas keres".encode()
+                    s.send(answer)
         except socket.error as e:
             print("hiba", e)
             inputs.remove(s)

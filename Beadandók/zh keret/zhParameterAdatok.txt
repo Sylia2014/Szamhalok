@@ -1,0 +1,8 @@
+Idojaras
+-----------
+idoAdatok = {"15":"clear","16":"cloudy","17":"fog"}
+varosAdatok = {"Budapest":"clear","Berlin":"cloudy","Becs":"fog","Amsterdam":"rain","London":"heavy rain"}
+
+Utvonal
+----------
+utvonalAdatok = {"15":"London,Paris","16":"Berlin","17":"Becs,Budapest"}
