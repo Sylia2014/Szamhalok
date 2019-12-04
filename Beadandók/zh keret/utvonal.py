@@ -3,8 +3,6 @@ import socket
 import struct
 import sys
 
-# srv_ip = 'localhost'
-# srv_port = 8080
 
 srv_ip = sys.argv[1]
 srv_port = int(sys.argv[2])
